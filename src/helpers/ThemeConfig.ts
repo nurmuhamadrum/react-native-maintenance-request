@@ -2,16 +2,16 @@ import { ThemeProp } from 'react-native-paper/lib/typescript/types';
 import { configureFonts, MD3LightTheme as LightTheme } from 'react-native-paper';
 
 export const Colors = {
-	primary: '#FDBA12',
-	primaryContainer: '#FDE58A',
-	onPrimaryContainer: '#7C3E0B',
-	secondary: '#999999',
-	secondaryContainer: '#D1D1D1',
+	primary: '#36A388',
+	primaryContainer: '#F8F8FF',
+	onPrimaryContainer: '#FFFFFF',
+	secondary: '#404040',
+	secondaryContainer: '#A1AFC3',
 	onSecondaryContainer: '#3D3D3D',
-	tertiary: '#CCFB20',
+	tertiary: '#E3903F',
 	tertiaryContainer: '#EEFF92',
 	onTertiaryContainer: '#445A0D',
-	error: '#BA1A1A',
+	error: '#D74B4B',
 };
 
 export const Fonts = {
