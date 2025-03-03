@@ -1,19 +1,18 @@
 import React from 'react';
-import { StatusBar} from 'react-native';
-import {
-  PaperProvider,
-} from 'react-native-paper';
+import {StatusBar} from 'react-native';
+import {PaperProvider} from 'react-native-paper';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+// helpers
 import {navigationRef} from '@/helpers/RootNavigation';
 import {Theme} from '@/helpers/ThemeConfig';
-import { RootStackParamList } from '@/helpers/StackParamList';
-// import Home from '@/modules/home/Navigation';
+import {RootStackParamList} from '@/helpers/StackParamList';
+// screen navigation
+import Home from '@/modules/home/Navigation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const ApplicationNavigator: React.FC = () => {
-
   return (
     <PaperProvider theme={Theme}>
       <StatusBar
@@ -29,7 +28,7 @@ const ApplicationNavigator: React.FC = () => {
           }}
           initialRouteName="Home">
           <React.Fragment>
-            {/* <Stack.Screen name="Home" component={Home} /> */}
+            <Stack.Screen name="Home" component={Home} />
           </React.Fragment>
         </Stack.Navigator>
       </NavigationContainer>

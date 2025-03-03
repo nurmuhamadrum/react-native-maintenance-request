@@ -10,6 +10,6 @@ module.exports = {
       },
     ],
     'inline-dotenv',
-    'react-native-reanimated/plugin', 
+    'react-native-reanimated/plugin',
   ],
 };
