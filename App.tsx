@@ -1,12 +1,8 @@
-import React, {Fragment} from 'react';
+import React from 'react';
 import ApplicationNavigator from './Application';
 
 function App(): React.JSX.Element {
-  return (
-    <Fragment>
-      <ApplicationNavigator />
-    </Fragment>
-  );
+  return <ApplicationNavigator />;
 }
 
 export default App;

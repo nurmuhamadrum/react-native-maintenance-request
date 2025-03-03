@@ -1,15 +1,20 @@
-import {Text, ScrollView, View, StyleSheet} from 'react-native';
+import {Text, ScrollView, View, StyleSheet, Button} from 'react-native';
 import React from 'react';
+import {observer} from 'mobx-react-lite';
+import homeStore from '@/stores/HomeStore';
 
-export default function HomeScreen() {
+const HomeScreen = observer(() => {
+  const { count, increment, decrement } = homeStore;
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View>
-        <Text>HomeScreen</Text>
+        <Text>Count: {count}</Text>
+        <Button title="Increment" onPress={increment} />
+        <Button title="Decrement" onPress={decrement} />
       </View>
     </ScrollView>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -18,3 +23,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
+export default HomeScreen;
