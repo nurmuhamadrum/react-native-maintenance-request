@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {StatusBar} from 'react-native';
 import {PaperProvider} from 'react-native-paper';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import SplashScreen from 'react-native-splash-screen';
 // helpers
 import {navigationRef} from '@/helpers/RootNavigation';
 import {Theme} from '@/helpers/ThemeConfig';
@@ -13,6 +14,10 @@ import Home from '@/modules/home/Navigation';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const ApplicationNavigator: React.FC = () => {
+  useEffect(() => {
+    SplashScreen.hide();
+  }, []);
+
   return (
     <PaperProvider theme={Theme}>
       <StatusBar
@@ -26,9 +31,9 @@ const ApplicationNavigator: React.FC = () => {
             headerShown: false,
             animation: 'slide_from_right',
           }}
-          initialRouteName="Home">
+          initialRouteName="Splash">
           <React.Fragment>
-            <Stack.Screen name="Home" component={Home} />
+            <Stack.Screen name="Splash" component={Home} />
           </React.Fragment>
         </Stack.Navigator>
       </NavigationContainer>

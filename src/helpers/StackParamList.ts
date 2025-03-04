@@ -1,10 +1,11 @@
-import { HOME } from '@/constants';
+import { HOME, SPLASH, FORM } from '@/constants';
 
 export type RootStackParamList = {
+  [SPLASH]: undefined;
   [HOME]: undefined;
 };
 
-// Home
 export type HomeStackParamList = {
   [HOME]: undefined;
+  [FORM]: undefined;
 };

@@ -2,13 +2,17 @@ import React from 'react';
 import {Text, View, StyleSheet, Pressable, Image, FlatList} from 'react-native';
 import {observer} from 'mobx-react-lite';
 import {useTheme} from 'react-native-paper';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {globalStyle as gs} from '@/helpers/GlobalStyle';
+import {HomeStackParamList} from '@/helpers/StackParamList';
 // components
 import Card from '../components/Card';
 import CardTop from '../components/CardTop';
 // import homeStore from '@/stores/HomeStore';
 
-const HomeScreen = observer(() => {
+type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
+
+const HomeScreen: React.FC<Props> = observer(({navigation}) => {
   const styles = useStyle();
   const data = [
     {
@@ -74,14 +78,21 @@ const HomeScreen = observer(() => {
         <View style={styles.containerList}>
           <FlatList
             data={data}
-            renderItem={({item}) => <Card title={item?.title} status={item?.status} date={item?.date} isResolved={item?.isResolve}  />}
+            renderItem={({item}) => (
+              <Card
+                title={item?.title}
+                status={item?.status}
+                date={item?.date}
+                isResolved={item?.isResolve}
+              />
+            )}
             keyExtractor={item => item.id.toString()}
           />
         </View>
       </View>
 
       {/* Floating Button Action */}
-      <Pressable style={styles.fab}>
+      <Pressable style={styles.fab} onPress={() => navigation.navigate('Form')}>
         <Image
           style={styles.tinyLogo}
           source={require('@/assets/icon-plus.png')}

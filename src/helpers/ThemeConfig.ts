@@ -8,7 +8,7 @@ export const Colors = {
 	secondary: '#404040',
 	secondaryContainer: '#A1AFC3',
 	onSecondaryContainer: '#3D3D3D',
-	tertiary: '#E3903F',
+	tertiary: '#DCDCDC',
 	tertiaryContainer: '#EEFF92',
 	onTertiaryContainer: '#445A0D',
 	error: '#D74B4B',
