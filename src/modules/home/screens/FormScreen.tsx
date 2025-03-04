@@ -1,28 +1,86 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View, StyleSheet, ScrollView} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {HomeStackParamList} from '@/helpers/StackParamList';
-import {useTheme, Button} from 'react-native-paper';
+import {useTheme, Button, Snackbar} from 'react-native-paper';
 import {SelectPicker, TextField} from '@/components';
 import {Formik, FormikProps} from 'formik';
 import {FormCreate} from '../Types';
 import {initValueForm, validationFormSchema} from '../Helpers';
 import {useFormikContext} from 'formik';
+import {useMutation, gql, useQuery} from '@apollo/client';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Form'>;
 
-const FormScreen: React.FC<Props> = () => {
+const FormScreen: React.FC<Props> = ({navigation}) => {
   const styles = useStyle();
   const formikRefForm = useRef<FormikProps<FormCreate>>(null);
+  const [visible, setVisible] = useState(false);
+
+  const ADD_MAINTENANCE_REQUEST = gql`
+    mutation AddMaintenanceRequest(
+      $Status: Int!
+      $Emergency: Int!
+      $Title: String!
+      $Description: String!
+      $Date: String!
+      $IsResolved: Boolean!
+    ) {
+      addMaintenanceRequest(
+        Status: $Status
+        Emergency: $Emergency
+        Title: $Title
+        Description: $Description
+        Date: $Date
+        IsResolved: $IsResolved
+      ) {
+        ID
+        Title
+        Description
+        Date
+        IsResolved
+      }
+    }
+  `;
+
+  const [addMaintenanceRequest] = useMutation(ADD_MAINTENANCE_REQUEST, {
+    refetchQueries: ['GetMaintenanceRequests'],
+  });
+
+  // dismiss error snackbar
+  const onDismissSnackBar = () => setVisible(false);
 
   // handler submit form
-  const handleSubmitForm = useCallback(async (values: FormCreate) => {
-    try {
-      console.log(values);
-    } catch (error) {
-      console.log('Error in handleSubmitForm', error);
-    }
-  }, []);
+  const handleSubmitForm = useCallback(
+    async (values: FormCreate) => {
+      try {
+        const {data} = await addMaintenanceRequest({
+          variables: {
+            Status: values?.status?.[0]?.id,
+            Emergency: values?.urgency?.[0]?.id,
+            Title: values?.title,
+            Description: values?.description,
+            Date: new Date().toISOString(),
+            IsResolved: values?.status?.[0]?.id === 1 ? false : true,
+          },
+        });
+
+        if (data) {
+          setVisible(true);
+          // navigation to home
+          setTimeout(() => {
+            navigation.reset({
+              index: 0,
+              routes: [{name: 'Home'}],
+            });
+          }, 500);
+        }
+      } catch (err) {
+        console.log('Error in handleSubmitForm', err);
+      }
+    },
+    [addMaintenanceRequest, navigation],
+  );
 
   // handle submit
   const handleSubmit = useCallback(async () => {
@@ -30,7 +88,7 @@ const FormScreen: React.FC<Props> = () => {
       await Promise.all([formikRefForm.current.submitForm()]);
       const itemErrors = formikRefForm.current.errors;
       if (Object.keys(itemErrors).length === 0) {
-        // here
+        // handle if needed
       } else {
         console.log('Error in handleSubmit', {itemErrors});
       }
@@ -48,42 +106,67 @@ const FormScreen: React.FC<Props> = () => {
           <RenderForm handleSubmit={handleSubmit} />
         </Formik>
       </View>
+      <Snackbar
+        visible={visible}
+        onDismiss={onDismissSnackBar}
+        action={{
+          label: 'OK',
+          onPress: () => {
+            setVisible(false);
+          },
+        }}>
+        Succes Save Data!
+      </Snackbar>
     </ScrollView>
   );
 };
 
-const RenderForm = ({ handleSubmit }: any) => {
+const RenderForm = ({handleSubmit}: any) => {
   const styles = useStyle();
   const formik = useFormikContext<FormCreate>();
   const {values} = formik;
-  const urgencyData = [
-    {
-      id: 1,
-      label: 'Non Urgent',
-    },
-    {
-      id: 2,
-      label: 'Less Urgent',
-    },
-    {
-      id: 3,
-      label: 'Urgent',
-    },
-    {
-      id: 4,
-      label: 'Emergency',
-    },
-  ];
-  const statusData = [
-    {
-      id: 1,
-      label: 'Open',
-    },
-    {
-      id: 2,
-      label: 'Resolve',
-    },
-  ];
+  const [statusData, setStatusData] = useState([]);
+  const [urgencyData, setUrgencyData] = useState([]);
+
+  // get status
+  const GET_STATUSES = gql`
+    query GetStatuses {
+      statuses {
+        ID
+        NamaStatus
+      }
+    }
+  `;
+
+  // get urgency
+  const GET_EMERGENCY = gql`
+    query GetEmergencys {
+      emergencies {
+        ID
+        EmergencyName
+      }
+    }
+  `;
+
+  const {data: statusesData} = useQuery(GET_STATUSES);
+  const {data: emergencyData} = useQuery(GET_EMERGENCY);
+
+  useEffect(() => {
+    const status = statusesData.statuses.map(
+      ({ID, NamaStatus}: {ID: number; NamaStatus: string}) => ({
+        id: ID,
+        label: NamaStatus,
+      }),
+    );
+    const emergency = emergencyData.emergencies.map(
+      ({ID, EmergencyName}: {ID: number; EmergencyName: string}) => ({
+        id: ID,
+        label: EmergencyName,
+      }),
+    );
+    setStatusData(status);
+    setUrgencyData(emergency);
+  }, [statusesData?.statuses, emergencyData]);
 
   return (
     <>

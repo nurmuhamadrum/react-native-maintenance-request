@@ -1,17 +1,42 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {useTheme} from 'react-native-paper';
 import {globalStyle as gs} from '@/helpers/GlobalStyle';
+import {useQuery, gql} from '@apollo/client';
 
 interface Card {
   title: string;
-  status: string;
+  status: number;
   date: string;
   isResolved: boolean;
 }
 
 const Card = ({title, status, date, isResolved}: Card) => {
   const styles = useStyle();
+  const [emergencyTitle, setEmergencyTitle] = useState<string>('-');
+
+  // get emergencys data
+  const GET_EMERGENCYS = gql`
+    query GetEmergency {
+      emergencies {
+        ID
+        EmergencyName
+      }
+    }
+  `;
+
+  const {error, data} = useQuery(GET_EMERGENCYS);
+
+  useEffect(() => {
+    if (data && !error) {
+      // find emergency title
+      let find = data?.emergencies.find((val: any) => {
+        return val.ID === status;
+      });
+      setEmergencyTitle(find?.EmergencyName || '-');
+    }
+  }, [data, status, error]);
+
   return (
     <View style={styles.cardList}>
       <View style={styles.containerCardListTitle}>
@@ -19,7 +44,7 @@ const Card = ({title, status, date, isResolved}: Card) => {
         <Text style={styles.titleDate}>{date}</Text>
       </View>
       <View style={[styles.containerCardListTitle, styles.marginCardInside]}>
-        <Text style={styles.titleStatus}>{status}</Text>
+        <Text style={styles.titleStatus}>{emergencyTitle}</Text>
         <View style={[styles.badges, isResolved && styles.bgGrey]}>
           <Text style={styles.titleBadges}>
             {isResolved ? 'Resolved' : 'Mark as Resolved'}
