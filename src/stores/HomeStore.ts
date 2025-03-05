@@ -1,22 +1,17 @@
 import {makeObservable, observable, action} from 'mobx';
-
+import {MaintenanceRequest} from '@/modules/home/Types';
 class HomeStore {
-  count = 0;
+  maintenanceData: MaintenanceRequest[] = []; // Add an observable array
 
   constructor() {
     makeObservable(this, {
-      count: observable,
-      increment: action,
-      decrement: action,
+      maintenanceData: observable, // Make the array observable
+      setMaintenanceData: action, // Add an action to update data
     });
   }
 
-  increment = () => {
-    this.count++;
-  };
-
-  decrement = () => {
-    this.count--;
+  setMaintenanceData = (data: MaintenanceRequest[]) => {
+    this.maintenanceData = data; // Update observable array
   };
 }
 

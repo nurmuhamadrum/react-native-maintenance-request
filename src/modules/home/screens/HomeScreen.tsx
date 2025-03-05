@@ -13,55 +13,66 @@ import {useTheme, Snackbar} from 'react-native-paper';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {globalStyle as gs} from '@/helpers/GlobalStyle';
 import {HomeStackParamList} from '@/helpers/StackParamList';
-import {useQuery, gql} from '@apollo/client';
+import {useQuery, useMutation} from '@apollo/client';
+import {useIsFocused} from '@react-navigation/native';
 // components
 import Card from '../components/Card';
 import LoadingCardTop from '../components/LoadingCardTop';
 import CardTop from '../components/CardTop';
 import LoadingList from '../components/LoadingList';
-// import homeStore from '@/stores/HomeStore';
+import {GET_MAINTENANCE_REQUEST, UPDATE_MAINTENANCE_REQUEST} from '../Query';
+import homeStore from '@/stores/HomeStore';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
 const HomeScreen: React.FC<Props> = observer(({navigation}) => {
   const styles = useStyle();
+  const isFocused = useIsFocused();
   const [visible, setVisible] = useState(false);
-  const [openReqCount, setOpenReqCount] = useState<string>('0');
-  const [urgentReqCount, setUrgentReqCount] = useState<string>('0');
-  const [averageReqCount, setAverageReCount] = useState<string>('0');
+  const [titleSnackbar, setTitleSnackbar] = useState<string>('');
+  const [openReqCount, setOpenReqCount] = useState<number>(0);
+  const [urgentReqCount, setUrgentReqCount] = useState<number>(0);
+  const [averageReqCount, setAverageReCount] = useState<number>(0);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-
-  // get maintenance request data
-  const GET_MAINTENANCE_REQUEST = gql`
-    query GetMaintenaceRequest {
-      maintenanceRequests {
-        ID
-        Status
-        Emergency
-        Title
-        Description
-        IsResolved
-        Date
-      }
-    }
-  `;
 
   // query data maintenance
   const {loading, error, data, refetch} = useQuery(GET_MAINTENANCE_REQUEST);
 
+  const [updateMaintenanceRequest] = useMutation(UPDATE_MAINTENANCE_REQUEST, {
+    onCompleted: () => {
+      refetch();
+      setVisible(true);
+      setTitleSnackbar('Success Update Data!');
+    },
+  });
+
+  const handlerUpdate = (ID: number) => {
+    updateMaintenanceRequest({
+      variables: {
+        id: ID,
+        Status: 2, // make status resolved
+        IsResolved: true,
+      },
+    });
+  };
+
   // dismiss error snackbar
-  const onDismissSnackBar = () => setVisible(false);
+  const onDismissSnackBar = () => {
+    setVisible(false);
+    setTitleSnackbar('');
+  };
 
   // handler count data
   const handlerCount = useCallback(() => {
-    let req = data?.maintenanceRequests || [];
+    let req = homeStore?.maintenanceData || [];
     let filterUrgent = req.filter((val: any) => {
-      return val?.Emergency === 3;
+      return val?.Emergency === 3 || val?.Emergency === 4;
     });
     setOpenReqCount(req?.length);
     setUrgentReqCount(filterUrgent?.length);
-    setAverageReCount('0');
-  }, [data?.maintenanceRequests]);
+    setAverageReCount(0);
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [isFocused]);
 
   // handler refresh
   const handlerRefresh = useCallback(() => {
@@ -72,19 +83,33 @@ const HomeScreen: React.FC<Props> = observer(({navigation}) => {
   }, [refetch]);
 
   useEffect(() => {
+    if (data) {
+      console.log('New Data from Query:', data.maintenanceRequests);
+      homeStore.setMaintenanceData(data.maintenanceRequests); // Update store
+    }
+  }, [data]);
+
+  useEffect(() => {
     if (error) {
       setVisible(true);
+      setTitleSnackbar('Failed to Load Data!');
     } else {
       if (data) {
         handlerCount();
       }
     }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  }, [error, data]);
+  }, [error, data, homeStore, isFocused]);
+
+  useEffect(() => {
+    if (isFocused) {
+      refetch();
+    }
+  }, [isFocused, refetch]);
 
   return (
     <View style={styles.container}>
-      <View>
+      <View style={gs.flex1}>
         <View style={styles.containerTop}>
           {/* Title Section */}
           <Text style={styles.title}>Maintenance Request</Text>
@@ -114,16 +139,24 @@ const HomeScreen: React.FC<Props> = observer(({navigation}) => {
             </View>
           ) : (
             <FlatList
-              data={data?.maintenanceRequests}
+              // data={homeStore.maintenanceData}
+              data={[...homeStore.maintenanceData]
+                .slice()
+                .sort(
+                  (a, b) =>
+                    new Date(b.Date).getTime() - new Date(a.Date).getTime(),
+                )}
               renderItem={({item}) => (
                 <Card
                   title={item?.Title}
                   status={item?.Status}
+                  emergency={item?.Emergency}
                   date={item?.Date}
                   isResolved={item?.IsResolved}
+                  onPress={() => handlerUpdate(item?.ID)}
                 />
               )}
-              keyExtractor={item => item.ID.toString()}
+              keyExtractor={item => item?.ID?.toString()}
               style={styles.flatlist}
               ListEmptyComponent={<RenderEmptyData />}
               refreshControl={
@@ -154,7 +187,7 @@ const HomeScreen: React.FC<Props> = observer(({navigation}) => {
             setVisible(false);
           },
         }}>
-        Failed to Load Data!
+        {titleSnackbar}
       </Snackbar>
     </View>
   );
@@ -177,7 +210,9 @@ const useStyle = () => {
       justifyContent: 'center',
       alignItems: 'center',
     },
-    flatlist: {height: '100%'},
+    flatlist: {
+      height: 'auto',
+    },
     containerLoadingList: {
       height: '100%',
       width: '100%',
@@ -207,6 +242,7 @@ const useStyle = () => {
     },
     containerList: {
       marginTop: 15,
+      paddingBottom: 270,
     },
     containerSubtitleCard: {
       minHeight: 22,
@@ -250,7 +286,7 @@ const useStyle = () => {
     },
     container: {
       backgroundColor: colors.primaryContainer,
-      height: '100%',
+      flex: 1,
     },
   });
 };

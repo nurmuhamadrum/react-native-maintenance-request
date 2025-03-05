@@ -8,7 +8,9 @@ import {Formik, FormikProps} from 'formik';
 import {FormCreate} from '../Types';
 import {initValueForm, validationFormSchema} from '../Helpers';
 import {useFormikContext} from 'formik';
-import {useMutation, gql, useQuery} from '@apollo/client';
+import {useMutation, useQuery} from '@apollo/client';
+import {ADD_MAINTENANCE_REQUEST, GET_EMERGENCY, GET_STATUSES} from '../Query';
+import homeStore from '@/stores/HomeStore';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Form'>;
 
@@ -17,34 +19,16 @@ const FormScreen: React.FC<Props> = ({navigation}) => {
   const formikRefForm = useRef<FormikProps<FormCreate>>(null);
   const [visible, setVisible] = useState(false);
 
-  const ADD_MAINTENANCE_REQUEST = gql`
-    mutation AddMaintenanceRequest(
-      $Status: Int!
-      $Emergency: Int!
-      $Title: String!
-      $Description: String!
-      $Date: String!
-      $IsResolved: Boolean!
-    ) {
-      addMaintenanceRequest(
-        Status: $Status
-        Emergency: $Emergency
-        Title: $Title
-        Description: $Description
-        Date: $Date
-        IsResolved: $IsResolved
-      ) {
-        ID
-        Title
-        Description
-        Date
-        IsResolved
-      }
-    }
-  `;
-
   const [addMaintenanceRequest] = useMutation(ADD_MAINTENANCE_REQUEST, {
     refetchQueries: ['GetMaintenanceRequests'],
+    onCompleted: data => {
+      if (data?.addMaintenanceRequest) {
+        homeStore.setMaintenanceData([
+          ...homeStore.maintenanceData,
+          data.addMaintenanceRequest,
+        ]);
+      }
+    },
   });
 
   // dismiss error snackbar
@@ -65,9 +49,8 @@ const FormScreen: React.FC<Props> = ({navigation}) => {
           },
         });
 
-        if (data) {
+        if (data?.addMaintenanceRequest) {
           setVisible(true);
-          // navigation to home
           setTimeout(() => {
             navigation.reset({
               index: 0,
@@ -76,7 +59,7 @@ const FormScreen: React.FC<Props> = ({navigation}) => {
           }, 500);
         }
       } catch (err) {
-        console.log('Error in handleSubmitForm', err);
+        console.error('Error in handleSubmitForm:', err);
       }
     },
     [addMaintenanceRequest, navigation],
@@ -96,16 +79,18 @@ const FormScreen: React.FC<Props> = ({navigation}) => {
   }, []);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.containerForm}>
-        <Formik
-          innerRef={formikRefForm}
-          initialValues={initValueForm}
-          onSubmit={handleSubmitForm}
-          validationSchema={validationFormSchema}>
-          <RenderForm handleSubmit={handleSubmit} />
-        </Formik>
-      </View>
+    <>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.containerForm}>
+          <Formik
+            innerRef={formikRefForm}
+            initialValues={initValueForm}
+            onSubmit={handleSubmitForm}
+            validationSchema={validationFormSchema}>
+            <RenderForm handleSubmit={handleSubmit} />
+          </Formik>
+        </View>
+      </ScrollView>
       <Snackbar
         visible={visible}
         onDismiss={onDismissSnackBar}
@@ -117,7 +102,7 @@ const FormScreen: React.FC<Props> = ({navigation}) => {
         }}>
         Succes Save Data!
       </Snackbar>
-    </ScrollView>
+    </>
   );
 };
 
@@ -128,37 +113,17 @@ const RenderForm = ({handleSubmit}: any) => {
   const [statusData, setStatusData] = useState([]);
   const [urgencyData, setUrgencyData] = useState([]);
 
-  // get status
-  const GET_STATUSES = gql`
-    query GetStatuses {
-      statuses {
-        ID
-        NamaStatus
-      }
-    }
-  `;
-
-  // get urgency
-  const GET_EMERGENCY = gql`
-    query GetEmergencys {
-      emergencies {
-        ID
-        EmergencyName
-      }
-    }
-  `;
-
   const {data: statusesData} = useQuery(GET_STATUSES);
   const {data: emergencyData} = useQuery(GET_EMERGENCY);
 
   useEffect(() => {
-    const status = statusesData.statuses.map(
+    const status = statusesData?.statuses.map(
       ({ID, NamaStatus}: {ID: number; NamaStatus: string}) => ({
         id: ID,
         label: NamaStatus,
       }),
     );
-    const emergency = emergencyData.emergencies.map(
+    const emergency = emergencyData?.emergencies.map(
       ({ID, EmergencyName}: {ID: number; EmergencyName: string}) => ({
         id: ID,
         label: EmergencyName,

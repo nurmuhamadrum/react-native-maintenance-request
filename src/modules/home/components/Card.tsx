@@ -1,17 +1,20 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Pressable} from 'react-native';
 import {useTheme} from 'react-native-paper';
 import {globalStyle as gs} from '@/helpers/GlobalStyle';
 import {useQuery, gql} from '@apollo/client';
+import moment from 'moment';
 
 interface Card {
   title: string;
   status: number;
+  emergency: number;
   date: string;
   isResolved: boolean;
+  onPress: () => void;
 }
 
-const Card = ({title, status, date, isResolved}: Card) => {
+const Card = ({title, emergency, status, date, isResolved, onPress}: Card) => {
   const styles = useStyle();
   const [emergencyTitle, setEmergencyTitle] = useState<string>('-');
 
@@ -31,25 +34,25 @@ const Card = ({title, status, date, isResolved}: Card) => {
     if (data && !error) {
       // find emergency title
       let find = data?.emergencies.find((val: any) => {
-        return val.ID === status;
+        return val.ID === emergency;
       });
       setEmergencyTitle(find?.EmergencyName || '-');
     }
-  }, [data, status, error]);
+  }, [data, emergency, error]);
 
   return (
     <View style={styles.cardList}>
       <View style={styles.containerCardListTitle}>
         <Text style={styles.titleCardList}>{title}</Text>
-        <Text style={styles.titleDate}>{date}</Text>
+        <Text style={styles.titleDate}>{moment(date).format('DD MMM YYYY')}</Text>
       </View>
       <View style={[styles.containerCardListTitle, styles.marginCardInside]}>
         <Text style={styles.titleStatus}>{emergencyTitle}</Text>
-        <View style={[styles.badges, isResolved && styles.bgGrey]}>
+        <Pressable disabled={status === 2} style={[styles.badges, isResolved && styles.bgGrey]} onPress={onPress}>
           <Text style={styles.titleBadges}>
             {isResolved ? 'Resolved' : 'Mark as Resolved'}
           </Text>
-        </View>
+        </Pressable>
       </View>
     </View>
   );

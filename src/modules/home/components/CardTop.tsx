@@ -4,7 +4,7 @@ import {useTheme} from 'react-native-paper';
 import {globalStyle as gs} from '@/helpers/GlobalStyle';
 
 interface CardTop {
-  title: string;
+  title: number;
   subtitle: string;
 }
 

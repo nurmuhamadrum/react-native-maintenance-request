@@ -9,3 +9,12 @@ export type FormCreate = {
   title: string;
   description: string;
 };
+
+export type MaintenanceRequest = {
+  ID: number;
+  Title: string;
+  Status: number;
+  Date: string;
+  IsResolved: boolean;
+  Emergency: number;
+};
