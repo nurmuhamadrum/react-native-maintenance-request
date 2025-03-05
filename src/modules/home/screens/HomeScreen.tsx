@@ -211,7 +211,7 @@ const useStyle = () => {
       alignItems: 'center',
     },
     flatlist: {
-      height: 'auto',
+      height: '100%',
     },
     containerLoadingList: {
       height: '100%',
