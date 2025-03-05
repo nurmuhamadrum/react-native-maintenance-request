@@ -82,7 +82,8 @@ then after the server local is run on 'http://localhost:4000/graphql', then run 
 ## Built With
 
 - [REACT NATIVE](https://facebook.github.io/react-native/) - MOBILE FRONTEND
-- [API](https://graphql.org/)(https://nodejs.org/en) - GRAPHQL & NODE
+- [GRAPHQL](https://graphql.org/) - GRAPHQL
+- [NODEJS](https://nodejs.org/en) - NODEJS
 
 ## Author
 
