@@ -134,7 +134,7 @@ const RenderForm = ({handleSubmit}: any) => {
   }, [statusesData?.statuses, emergencyData]);
 
   return (
-    <>
+    <View>
       {/* Field Urgency */}
       <SelectPicker
         name="urgency"
@@ -178,10 +178,11 @@ const RenderForm = ({handleSubmit}: any) => {
         mode="contained"
         style={styles.button}
         labelStyle={styles.titleButton}
+        contentStyle={styles.buttonContent}
         onPress={() => handleSubmit()}>
         Save
       </Button>
-    </>
+    </View>
   );
 };
 
@@ -198,9 +199,10 @@ const useStyle = () => {
     },
     containerForm: {
       flex: 1,
+      paddingBottom: 100,
     },
+    buttonContent: { height: 48, width: 350 },
     container: {
-      flex: 1,
       backgroundColor: colors.primaryContainer,
       padding: 30,
     },
